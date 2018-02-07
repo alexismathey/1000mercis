@@ -97,11 +97,14 @@ def main(path, delimiter, verbose):
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser()
-	parser.add_argument('--dataset', help='path to the dataset', required=True)
-	parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
-	parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
+    # Parse the different arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', help='path to the dataset', required=True)
+    parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
+    parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
 	
-	opts = parser.parse_args()
+    # Recover the arguments
+    opts = parser.parse_args()
 
-	main(opts.dataset, opts.delimiter, opts.verbose)
+    # Execute the main function
+    main(opts.dataset, opts.delimiter, opts.verbose)
