@@ -29,12 +29,6 @@ def transform_pairwise(X, Y):
         Output id for each pair
     """
 
-
-    #X the data
-
-    #Y(:,0) : Rank
-    #Y(:,1) : user_id
-
     #Initiate the output
     X_new = []
     Y_new = []
@@ -95,9 +89,11 @@ class RankSVM(svm.LinearSVC):
     Performs pairwise ranking with an underlying LinearSVC model
     Input should be a n-class ranking problem, this object will convert it
     into a two-class classification problem.
-    See object :ref:`svm.LinearSVC` for a full description of parameters
     """    
     def __init__(self):
+        """
+        Initiate the parameters of the model
+        """
         self.penalty = 'l2'
         self.loss = 'squared_hinge'
         self.dual = False
@@ -116,74 +112,109 @@ class RankSVM(svm.LinearSVC):
     def fit(self, X, Y):
         """
         Fit a pairwise ranking model.
+        
         Parameters
         ----------
         X : array, shape (n_samples, n_features)
-        y : array, shape (n_samples,) or (n_samples, 2)
+            The data
+        y : array, shape (n_samples, 2)
+            The rank and the id
+        
         Returns
         -------
         self
         """
         
+        # Convert the dataset for the pairwise approach
         X_trans, Y_trans, _ = transform_pairwise(X, Y)
         
         return super().fit(X_trans, Y_trans)
 
     def predict(self, X):
         """
-        Predict an ordering on X. For a list of n samples, this method
-        returns a list from 0 to n-1 with the relative order of the rows of X.
+        Predict the rank of X
+        
         Parameters
         ----------
         X : array, shape (n_samples, n_features)
+            The data
+        
         Returns
         -------
-        ord : array, shape (n_samples,)
-            Returns a list of integers representing the relative order of
-            the rows in X.
+        Y : array, shape (n_samples,)
+            Output predicted class
         """
         
         return super().predict(X)
-        
-        """
-        if hasattr(self, 'coef_'):
-            np.argsort(np.dot(X, self.coef_.T))
-        else:
-            raise ValueError("Must call fit() prior to predict()")
-        """
 
     def scoreInversion(self, X, Y):
         """
-        Because we transformed into a pairwise problem, chance level is at 0.5
+        Compute the number of good matches between a pair and its rank difference
+        over the total number of pairs.
+        
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            The data
+        y : array, shape (n_samples, 2)
+            The rank and the id
+        
+        Returns
+        -------
+        score : float
+            The output score as described previously
         """
         
+        # Convert the dataset for the pairwise approach
         X_trans, Y_trans, _ = transform_pairwise(X, Y)
         
-        nb_tot = len(X_trans)   
+        # Number of pairs
+        nb_tot = len(X_trans)  
+        
+        # Predict the output class for each pair
         pred = (self.predict(X_trans) != Y_trans)
+        
+        # Count the number of missclassified pairs
         misclassified = sum(pred)
         
+        # Compute the score 
         score = 1 - misclassified/nb_tot
         return score
     
     def scoreId(self, X, Y):
         """
-        Because we transformed into a pairwise problem, chance level is at 0.5
+        Compute the number of id where all the pairs are correctly classified
+        over the number of id.
+        At the moment, it is too restrictive
+        
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            The data
+        y : array, shape (n_samples, 2)
+            The rank and the id
+        
+        Returns
+        -------
+        score : float
+            The output score as described previously
         """
+        
+        # Convert the dataset for the pairwise approach
         X_trans, Y_trans, Z_trans = transform_pairwise(X, Y)
         
+        # Store whether we found any wrong match within a id or not
         scoreDict = {}
         
+        # Predict the output class for each pair
         pred = (self.predict(X_trans) != Y_trans)
         
+        # For each pair, we recover its id and we store the result of the match
+        # scoreDict[id]
         for i in range(0,len(X_trans)):
             if not (i in scoreDict) or scoreDict[i]:
                 scoreDict[Z_trans[i]] = pred[i]
-            
+        
+        # Compute the score
         score = sum(scoreDict.values())/len(scoreDict)
         return score
-        #Trouver moyen de bien classer les adresses ensuite
-        #Ici critère trop strict
-        #Tester méthodes non linéaires à base d'arbres
-        #Lifetime fortement corr avec nb_Occurences
-        #Liaison vue sur plusieurs sites est-il intéressant ?

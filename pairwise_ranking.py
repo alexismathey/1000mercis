@@ -37,6 +37,7 @@ def main(path, delimiter, verbose):
     missranked_scores_test = []
     
     for k in range(nb_folds):
+        # recover the train and the test set
         train, test = fold.get_fold(k)
         train = train.sort_values(by='id')
         test = test.sort_values(by='id')
@@ -46,19 +47,24 @@ def main(path, delimiter, verbose):
             train = train.drop(drop, 1)
             test = test.drop(drop, 1)
         
+        # split the feature and the [rank, id]
         X_train = train[headers_to_scale].values
         Y_train = train[['rank', 'id']]
         
         X_test = test[headers_to_scale].values
         Y_test = test[['rank', 'id']]
         
+        # Create our model
         rank_svm = RankSVM()
         
+        # Fit our model with the train set
         rank_svm = rank_svm.fit(X_train, Y_train)
         
+        # Compute the missranked score for the train set
         missranked_score_train = 1 - rank_svm.scoreInversion(X_train, Y_train)
         missranked_scores_train.append(missranked_score_train)
         
+        # Compute the missranked score for the test set
         missranked_score_test = 1 - rank_svm.scoreInversion(X_test, Y_test)
         missranked_scores_test.append(missranked_score_test)
         
@@ -71,18 +77,22 @@ def main(path, delimiter, verbose):
             print('test set:')
             print('   missranked =', round(missranked_score_test, 3))
             print('   wellranked =', round(1 - missranked_score_test, 3))
-            
+
+    # print the final results
     if verbose:
         print('\n******** MEAN over all folds ********')
         print('Train missranked = ', np.mean(missranked_scores_train))
         print(' Test missranked = ', np.mean(missranked_scores_test))
             
 if __name__ == '__main__':
+    # Parse the different arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', help='path to the dataset', required=True)
     parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
     parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
 	
+    # Recover the arguments
     opts = parser.parse_args()
 
+    # Execute the main function
     main(opts.dataset, opts.delimiter, opts.verbose)
