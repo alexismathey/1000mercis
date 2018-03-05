@@ -36,9 +36,9 @@ def compute_error(Y_test, Y_predicted):
 	wellranked = 0
 	total = 0
 	for i in range(len(Y_test)):
-		if Y_test[i] == 1:
+		if Y_predicted[i] == 1:
 		    total += 1
-		    if Y_predicted[i] == 1:
+		    if Y_test[i] == 1:
 		        wellranked += 1
 		    else:
 		        missranked += 1
