@@ -22,26 +22,25 @@ def scaling(dataset, headers, mean=None, std=None):
 		return dataset
 
 
-def scaling_by_id(dataset, headers):
+def scaling_by_id(dataset, headers, verbose=False):
 	"""
 		Performs feature scaling id by id
 	"""
 
-	print('       starting scaling by id')
-	start = time.time()
+	if verbose:
+		print('starting scaling by id ...', end=' ')
 
 	dataset = dataset.sort_values(by='id').reset_index(drop=True)
 	mean = dataset.groupby('id')[headers].mean()
-	abs_max = dataset.abs().groupby('id')[headers].max()
+	std = dataset.groupby('id')[headers].std()
 
 	# to avoid division by 0
-	abs_max = abs_max.replace(0, 1)	
+	std = std.replace(0, 1)	
 	dataset.loc[:,headers] = dataset\
-		.apply(lambda row: (row[headers] - mean.loc[row['id'], headers]) / abs_max.loc[row['id'], headers], axis=1)
+		.apply(lambda row: (row[headers] - mean.loc[row['id'], headers]) / std.loc[row['id'], headers], axis=1)
 
-	stop = time.time()
-
-	print('       execution time = ', round(stop - start, 2))
+	if verbose:
+		print('done.')
 
 	return dataset
 
