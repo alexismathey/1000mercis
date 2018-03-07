@@ -36,7 +36,7 @@ class KFolds:
 		return train_set, test_set
 
 
-def read_csv(filepath, delimiter, nrows=None, verbose=True):
+def read_csv(filepath, delimiter, verbose=True, nrows=None):
 	"""
 		load the csv file using pandas library
 		returns: the dataframe, a list of the headers names
