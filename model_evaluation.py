@@ -163,13 +163,14 @@ def main(train_path, test_path):
 
 	for row in range(len(Y_predicted_test)):
 	    current_id = df_2.loc[row,'id']
-	    if Y_predicted_test[row] == 1:
-	        prediction = row
-	        N += 1
-	    if baseline[row] == 1:
-	        prediction_baseline = row
+
 	    if current_id == old_id:
-	        rows.append(row)
+	    	rows.append(row)
+	    	if Y_predicted_test[row] == 1:
+	    		prediction = row
+	    		N += 1
+	    	if baseline[row] == 1:
+	    		prediction_baseline = row
 	    else:
 	        old_id = current_id
 	        m = df_2.loc[rows, 'similarity'].max()    
@@ -179,6 +180,12 @@ def main(train_path, test_path):
 	        score_2_baseline += m*df_2.loc[prediction_baseline, 'similarity']        
 	        rows = []
 	        rows.append(row)
+	        if Y_predicted_test[row] == 1:
+	        	prediction = row
+	        	N += 1
+	        if baseline[row] == 1:
+	        	prediction_baseline = row
+
 	    if row == len(Y_predicted_test):
 	        old_id = current_id
 	        m = df_2.loc[rows, 'similarity'].max()    
