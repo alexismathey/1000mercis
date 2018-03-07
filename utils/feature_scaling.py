@@ -1,5 +1,5 @@
 import pandas as pd
-
+import time
 
 def scaling(dataset, headers, mean=None, std=None):
 	"""
@@ -22,10 +22,31 @@ def scaling(dataset, headers, mean=None, std=None):
 		return dataset
 
 
-def scaling_by_id(dataset, headers):
+def scaling_by_id(dataset, headers, verbose=False):
 	"""
 		Performs feature scaling id by id
 	"""
+
+	if verbose:
+		print('starting scaling by id ...', end=' ')
+
+	dataset = dataset.sort_values(by='id').reset_index(drop=True)
+	mean = dataset.groupby('id')[headers].mean()
+	std = dataset.groupby('id')[headers].std()
+
+	# to avoid division by 0
+	std = std.replace(0, 1)	
+	dataset.loc[:,headers] = dataset\
+		.apply(lambda row: (row[headers] - mean.loc[row['id'], headers]) / std.loc[row['id'], headers], axis=1)
+
+	if verbose:
+		print('done.')
+
+	return dataset
+
+
+"""
+def scaling_by_id(dataset, headers):
 	id_values = sorted(list(set(dataset['id'].values)))
 
 	length = len(id_values)
@@ -43,3 +64,4 @@ def scaling_by_id(dataset, headers):
 			dataset.loc['id'==id][header] = (dataset.loc['id'==id][header] - mean) / std
 
 	return dataset
+"""
