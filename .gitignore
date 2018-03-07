@@ -1,2 +1,8 @@
 # untrack data directory
 data/
+
+# untrack macOS hidden files
+.DS_Store
+
+# untrack pycache
+utils/__pycache__/

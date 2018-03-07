@@ -28,7 +28,7 @@ normalized_dataframe = scaling_by_id(data_frame, headers_to_scale, verbose=True)
 
 # saving normalized dataset
 print('saving dataframe ...', end=' ')
-path_to_save = '../MAIN/data/dataset_augmented_scaled_by_id.csv'
+path_to_save = './data/dataset_augmented_scaled_by_id.csv'
 normalized_dataframe.to_csv(path_to_save, sep=';', index=False)
 print('csv saved.')
 
@@ -36,4 +36,5 @@ t2 = time.time()
 
 
 print('it took ' + str(t2-t1))
+
 
