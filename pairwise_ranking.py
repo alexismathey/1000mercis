@@ -49,10 +49,10 @@ def main(path, delimiter, score, threshold, verbose):
         
         # split the feature and the [rank, id]
         X_train = train[headers_to_scale].values
-        Y_train = train[['rank', 'id']]
+        Y_train = train[['rank', 'id']].values
         
         X_test = test[headers_to_scale].values
-        Y_test = test[['rank', 'id']]
+        Y_test = test[['rank', 'id']].values
         
         # Create our model
         rank_svm = RankSVM()
@@ -68,16 +68,25 @@ def main(path, delimiter, score, threshold, verbose):
             # Compute the missranked score for the test set
             missranked_score_test = 1 - rank_svm.scoreInversion(X_test, Y_test)
             missranked_scores_test.append(missranked_score_test)
-        elif score == 'id':
+        elif score == 'thresholdId':
             # Compute the missranked score for the train set
-            missranked_score_train = 1 - rank_svm.scoreId(X_train, Y_train, threshold)
+            missranked_score_train = 1 - rank_svm.scoreThresholdId(X_train, Y_train, threshold)
             missranked_scores_train.append(missranked_score_train)
             
             # Compute the missranked score for the test set
-            missranked_score_test = 1 - rank_svm.scoreId(X_test, Y_test, threshold)
+            missranked_score_test = 1 - rank_svm.scoreThresholdId(X_test, Y_test, threshold)
+            missranked_scores_test.append(missranked_score_test)
+        elif score == 'id':
+            # Compute the missranked score for the train set
+            missranked_score_train = 1 - rank_svm.scoreId(X_train, Y_train)
+            missranked_scores_train.append(missranked_score_train)
+            
+            # Compute the missranked score for the test set
+            missranked_score_test = 1 - rank_svm.scoreId(X_test, Y_test)
             missranked_scores_test.append(missranked_score_test)
         else:
-            raise TypeError("You didn't enter a proper scoing method (inversion or id)")
+            print('Not a valid score method')
+            return
         
         # printing intermediate results
         if verbose:
