@@ -324,9 +324,9 @@ class RankSVM(svm.LinearSVC):
                 elif scoreConversion == bestScore:
                     bestIdList.append(idConversion)
             
-            # We get the correct conversion id iff we only have one candidate 
-            # and this candidate has a rank equal to 1.
-            if len(bestIdList) == 1 and Y[bestIdList[0], 0] == 1:
+            # We get the correct conversion id iff one randomly chosen
+            # conversionId has the best rank
+            if Y[np.random.choice(bestIdList), 0] == 1:
                 score += 1
                 
         score = score/len(scoreDict)
