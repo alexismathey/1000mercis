@@ -23,6 +23,8 @@ def compute_prediction(dataset, Y_score, verbose=False):
 			if Y_score[row] > highest_proba:
 				best_index = row
 				highest_proba = Y_score[row]
+		if row == n-1:
+			Y_predicted[best_index] = 1
 	if verbose:
 		print(30*' ', end='\r')
 	return Y_predicted
