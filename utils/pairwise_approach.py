@@ -153,7 +153,7 @@ class RankSVM(svm.LinearSVC):
         
         return super().fit(X_trans, Y_trans)
 
-    def predict(self, X):
+    def predictInversion(self, X):
         """
         Predict the rank of X
         
@@ -169,6 +169,9 @@ class RankSVM(svm.LinearSVC):
         """
         
         return super().predict(X)
+    
+    def predictId(self, X):
+        return
 
     def scoreInversion(self, X, Y):
         """
@@ -195,7 +198,7 @@ class RankSVM(svm.LinearSVC):
         nb_tot = len(X_trans)  
         
         # Predict the output class for each pair
-        pred = (self.predict(X_trans) != Y_trans)
+        pred = (self.predictInversion(X_trans) != Y_trans)
         
         # Count the number of misclassified pairs
         misclassified = sum(pred)
@@ -233,7 +236,7 @@ class RankSVM(svm.LinearSVC):
         scoreDict = {}
         
         # Predict the output class for each pair
-        pred = (self.predict(X_trans) == Y_trans)
+        pred = (self.predictInversion(X_trans) == Y_trans)
         
         # For each pair, we recover its id and we add the result of the match
         # in scoreDict[id]
