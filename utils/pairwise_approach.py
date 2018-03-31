@@ -155,7 +155,24 @@ class RankSVM(svm.LinearSVC):
 
     def predictInversion(self, X):
         """
-        Predict the rank of X
+        Predict the order of each pair within X
+        
+        Parameters
+        ----------
+        X : array, shape (n_samples, n_features)
+            The data already shaped for the pairwise approach
+        
+        Returns
+        -------
+        Y : array, shape (n_samples,)
+            Output predicted class
+        """
+        
+        return super().predict(X)
+    
+    def predictId(self, X, Y):
+        """
+        Predict the rank of each X
         
         Parameters
         ----------
@@ -168,10 +185,59 @@ class RankSVM(svm.LinearSVC):
             Output predicted class
         """
         
-        return super().predict(X)
-    
-    def predictId(self, X):
-        return
+        # Convert the dataset for the pairwise approach
+        X_trans, _, Z_trans, _ = transform_pairwise(X, Y)
+        
+        # Store for each id the ids of each conversion and the number of pairs 
+        # where this conversion won
+        scoreDict = {}
+        
+        # Predict the output class for each pair
+        Y_trans_pred = self.predictInversion(X_trans)
+        
+        # For each pair, we recover its id, then the winning part and we add the
+        # information in the dict scoreDict[id]
+        for i in range(0,len(X_trans)):
+            current_id = Z_trans[i][2]
+            
+            if not (current_id in scoreDict):
+                if Y_trans_pred[i] == 1:
+                    scoreDict[current_id] = {Z_trans[i][1] : 1}
+                elif Y_trans_pred[i] == -1:
+                    scoreDict[current_id] = {Z_trans[i][0] : 1}
+            else:
+                if Y_trans_pred[i] == 1:
+                    if not (Z_trans[i][1] in scoreDict[current_id]):
+                        scoreDict[current_id][Z_trans[i][1]] = 1
+                    else:
+                        scoreDict[current_id][Z_trans[i][1]] += 1
+                elif Y_trans_pred[i] == -1:
+                    if not (Z_trans[i][0] in scoreDict[current_id]):
+                        scoreDict[current_id][Z_trans[i][0]] = 1
+                    else:
+                        scoreDict[current_id][Z_trans[i][0]] += 1
+        
+        # Compute Predictions
+        Y_pred = 2 + np.zeros(len(X), dtype=int)
+        for scoreId in scoreDict.values():
+            bestIdList = []
+            bestScore = -1
+            
+            # For each conversion, we check its score, e.g. the number of won 
+            # pairs, if it's strictly greater than the current best score 
+            # then we reinitialize the list of best conversion and we update 
+            # the bestScore. But if we have the same score, we add the 
+            # conversionId to the list of best conversion.
+            for idConversion, scoreConversion in scoreId.items():
+                if scoreConversion > bestScore:
+                    bestIdList = [idConversion]
+                    bestScore = copy.deepcopy(scoreConversion)
+                elif scoreConversion == bestScore:
+                    bestIdList.append(idConversion)
+                    
+            Y_pred[np.random.choice(bestIdList)] = 1
+            
+        return Y_pred
 
     def scoreInversion(self, X, Y):
         """
@@ -276,62 +342,18 @@ class RankSVM(svm.LinearSVC):
             The output score as described previously
         """
         
-        # Convert the dataset for the pairwise approach
-        X_trans, Y_trans, Z_trans, _ = transform_pairwise(X, Y)
-        
-        # Store for each id the ids of each conversion and the number of pairs 
-        # where this conversion won
-        scoreDict = {}
-        
-        # Predict the output class for each pair
-        Y_pred = self.predict(X_trans)
-        
-        # For each pair, we recover its id, then the winning part and we add the
-        # information in the dict scoreDict[id]
-        for i in range(0,len(X_trans)):
-            current_id = Z_trans[i][2]
-            
-            if not (current_id in scoreDict):
-                if Y_pred[i] == 1:
-                    scoreDict[current_id] = {Z_trans[i][1] : 1}
-                elif Y_pred[i] == -1:
-                    scoreDict[current_id] = {Z_trans[i][0] : 1}
-            else:
-                if Y_pred[i] == 1:
-                    if not (Z_trans[i][1] in scoreDict[current_id]):
-                        scoreDict[current_id][Z_trans[i][1]] = 1
-                    else:
-                        scoreDict[current_id][Z_trans[i][1]] += 1
-                elif Y_pred[i] == -1:
-                    if not (Z_trans[i][0] in scoreDict[current_id]):
-                        scoreDict[current_id][Z_trans[i][0]] = 1
-                    else:
-                        scoreDict[current_id][Z_trans[i][0]] += 1
-        
+        Y_pred = self.predictId(X, Y)
         
         # Compute the score
         score = 0
-        for scoreId in scoreDict.values():
-            bestIdList = []
-            bestScore = -1
-            
-            # For each conversion, we check its score, e.g. the number of won 
-            # pairs, if it's strictly greater than the current best score 
-            # then we reinitialize the list of best conversion and we update 
-            # the bestScore. But if we have the same score, we add the 
-            # conversionId to the list of best conversion.
-            for idConversion, scoreConversion in scoreId.items():
-                if scoreConversion > bestScore:
-                    bestIdList = [idConversion]
-                    bestScore = copy.deepcopy(scoreConversion)
-                elif scoreConversion == bestScore:
-                    bestIdList.append(idConversion)
-            
-            # We get the correct conversion id iff one randomly chosen
-            # conversionId has the best rank
-            if Y[np.random.choice(bestIdList), 0] == 1:
-                score += 1
+        total = 0
+        for i in range(0, len(X)):
+            if Y_pred[i] == 1:
+                total +=1
                 
-        score = score/len(scoreDict)
+                if Y[i, 0] == 1:
+                    score += 1
+                
+        score = score/total
         
         return score

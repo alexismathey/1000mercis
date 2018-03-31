@@ -115,79 +115,80 @@ def main(train_path, test_path):
     print('   wellranked =', round(1 - missranked_score_train, 3))
 
     # computing score on test set
-    missranked_score_test = 1 - rank_svm.scoreId(X_test, Y_test)
+    Y_predicted_test = rank_svm.predictId(X_test, Y_test)
+    missranked_test, wellranked_test, total_test = compute_error(Y_test[:,0], Y_predicted_test)
+    
+    # testing baseline
     missranked_test_baseline, wellranked_test_baseline, total_test_baseline = compute_error(Y_test[:,0], baseline)
 
     # printing intermediate results
     print('test set:')
-    print('   missranked =', round(missranked_score_test, 3))
-    print('   wellranked =', round(1 - missranked_score_test, 3))
+    print('   missranked =', round(missranked_test/total_test, 3))
+    print('   wellranked =', round(wellranked_test/total_test, 3))
     print('baseline prediction:')
     print('   missranked =', round(missranked_test_baseline/total_test_baseline, 3))
     print('   wellranked =', round(wellranked_test_baseline/total_test_baseline, 3))
 
-# =============================================================================
-#     # Les deux métriques du pdf
-# 
-#     #df_2 = data_frame_test.copy()
-# 
-#     old_id = test.loc[0, 'id']
-#     rows = []
-#     score_1 = 0
-#     score_2 = 0
-#     score_1_baseline = 0
-#     score_2_baseline = 0
-#     N = 0
-# 
-#     for row in range(len(Y_predicted_test)):
-#         current_id = test.loc[row,'id']
-# 
-#         if current_id == old_id:
-#             rows.append(row)
-#             if Y_predicted_test[row] == 1:
-#                 prediction = row
-#                 N += 1
-#             if baseline[row] == 1:
-#                 prediction_baseline = row
-#         else:        
-#             m = test.loc[rows, 'similarity'].max()    
-#             score_1 += m - test.loc[prediction, 'similarity']
-#             score_2 += m*test.loc[prediction, 'similarity']
-#             score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
-#             score_2_baseline += m*test.loc[prediction_baseline, 'similarity']       
-#             #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
-#             old_id = current_id
-#             rows = []
-#             rows.append(row)
-#             if Y_predicted_test[row] == 1:
-#                 prediction = row
-#                 N += 1
-#             if baseline[row] == 1:
-#                 prediction_baseline = row
-# 
-#         if row == len(Y_predicted_test)-1:        
-#             m = test.loc[rows, 'similarity'].max()    
-#             score_1 += m - test.loc[prediction, 'similarity']
-#             score_2 += m*test.loc[prediction, 'similarity']
-#             score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
-#             score_2_baseline += m*test.loc[prediction_baseline, 'similarity']        
-#             #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
-# 
-# 
-#     score_1 /= N
-#     score_2 /= N
-#     score_1_baseline /= N
-#     score_2_baseline /= N
-# 
-# 
-# 
-# 
-# 
-#     print('score_1 = ' + str(score_1))
-#     print('score_2 = ' + str(score_2))
-#     print('score_1_baseline = ' + str(score_1_baseline))
-#     print('score_2_baseline = ' + str(score_2_baseline))
-# =============================================================================
+    # Les deux métriques du pdf
+
+    #df_2 = data_frame_test.copy()
+
+    old_id = test.loc[0, 'id']
+    rows = []
+    score_1 = 0
+    score_2 = 0
+    score_1_baseline = 0
+    score_2_baseline = 0
+    N = 0
+
+    for row in range(len(Y_predicted_test)):
+        current_id = test.loc[row,'id']
+
+        if current_id == old_id:
+            rows.append(row)
+            
+            if Y_predicted_test[row] == 1:
+                prediction = row
+                N += 1
+                
+            if baseline[row] == 1:
+                prediction_baseline = row
+        else:        
+            m = test.loc[rows, 'similarity'].max()    
+            score_1 += m - test.loc[prediction, 'similarity']
+            score_2 += m * test.loc[prediction, 'similarity']
+            score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
+            score_2_baseline += m * test.loc[prediction_baseline, 'similarity']       
+            #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
+            
+            old_id = current_id
+            rows = []
+            rows.append(row)
+            
+            if Y_predicted_test[row] == 1:
+                prediction = row
+                N += 1
+            
+            if baseline[row] == 1:
+                prediction_baseline = row
+
+        if row == len(Y_predicted_test)-1:        
+            m = test.loc[rows, 'similarity'].max()    
+            score_1 += m - test.loc[prediction, 'similarity']
+            score_2 += m * test.loc[prediction, 'similarity']
+            score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
+            score_2_baseline += m * test.loc[prediction_baseline, 'similarity']        
+            #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
+
+    score_1 /= N
+    score_2 /= N
+    score_1_baseline /= N
+    score_2_baseline /= N
+
+    print('score_1 = ' + str(score_1))
+    print('score_2 = ' + str(score_2))
+    print('score_1_baseline = ' + str(score_1_baseline))
+    print('score_2_baseline = ' + str(score_2_baseline))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
