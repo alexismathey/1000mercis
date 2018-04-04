@@ -36,14 +36,14 @@ class KFolds:
 		return train_set, test_set
 
 
-def read_csv(filepath, delimiter, nrows=None, verbose=True):
+def read_csv(filepath, delimiter, verbose=True):
 	"""
 		load the csv file using pandas library
 		returns: the dataframe, a list of the headers names
 	"""
 	if verbose:
 		print('reading csv...', end=' ')
-	data_frame = pd.read_csv(filepath, delimiter=delimiter, nrows=nrows)
+	data_frame = pd.read_csv(filepath, delimiter=delimiter)
 	if verbose:
 		print('Done.')
 	all_headers = data_frame.columns.tolist()

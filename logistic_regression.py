@@ -94,6 +94,8 @@ def main(path, delimiter, verbose):
 		print('\n******** MEAN over all folds ********')
 		print('Train missranked = ', np.mean(missranked_scores_train))
 		print(' Test missranked = ', np.mean(missranked_scores_test))
+		print('  Train accuracy = ', 1 - np.mean(missranked_scores_train))
+		print('   Test accuracy = ', 1 - np.mean(missranked_scores_test))
 
 
 if __name__ == '__main__':

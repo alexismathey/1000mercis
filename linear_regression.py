@@ -48,8 +48,8 @@ def main(path, delimiter, verbose):
 
 		# dropping not usefull columns
 		for drop in headers_to_drop:
-		    train = train.drop(drop, 1)
-		    test = test.drop(drop, 1)
+			train = train.drop(drop, 1)
+			test = test.drop(drop, 1)
 
 		# train set
 		train, mean, std = scaling(train, headers_to_scale)
@@ -94,21 +94,24 @@ def main(path, delimiter, verbose):
 		print('\n******** MEAN over all folds ********')
 		print('Train missranked = ', np.mean(missranked_scores_train))
 		print(' Test missranked = ', np.mean(missranked_scores_test))
+		print('  Train accuracy = ', 1 - np.mean(missranked_scores_train))
+		print('   Test accuracy = ', 1 - np.mean(missranked_scores_test))
 
 
 if __name__ == '__main__':
-    # Parse the different arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--dataset', help='path to the dataset', required=True)
-    parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
-    parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
+	# Parse the different arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--dataset', help='path to the dataset', required=True)
+	parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
+	parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
 	
-    # Recover the arguments
-    opts = parser.parse_args()
+	# Recover the arguments
+	opts = parser.parse_args()
 
-    # Execute the main function
+	# Execute the main function
 	main(opts.dataset, opts.delimiter, opts.verbose)
 
 
 # python3 xgb_classifier.py --dataset /Users/Alexis/Documents/Centrale/3A/PROJET_MILLE_MERCIS/MAIN/data/dataset_augmented.csv --delimiter ';' --verbose
 
+# --dataset /Users/paulwambergue/Centrale/1000mercis/data/dataset_augmented.csv --delimiter ';' --verbose

@@ -58,7 +58,6 @@ def main(path, delimiter, verbose):
 		Y = train['rank']==1
 
 		# training model
-		regularization = 1e10
 		xgb_reg = xgb_reg = GradientBoostingRegressor(criterion='mse', max_depth=8, n_estimators=40, verbose=verbose)
 		xgb_reg.fit(X, Y)
 
@@ -95,6 +94,8 @@ def main(path, delimiter, verbose):
 		print('\n******** MEAN over all folds ********')
 		print('Train missranked = ', np.mean(missranked_scores_train))
 		print(' Test missranked = ', np.mean(missranked_scores_test))
+		print('  Train accuracy = ', 1 - np.mean(missranked_scores_train))
+		print('   Test accuracy = ', 1 - np.mean(missranked_scores_test))
 
 
 if __name__ == '__main__':
