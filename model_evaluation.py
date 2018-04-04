@@ -70,6 +70,9 @@ def main(train_path, test_path):
 	similarity =  np.array(test.loc[:,'similarity'])
 	baseline = np.zeros(similarity.shape)
 
+	test = test.reset_index(drop=True)
+	test['arg_max']=0
+
 	old_id = test.loc[0,'id']
 	rows = []
 
@@ -82,25 +85,24 @@ def main(train_path, test_path):
 	        baseline[sample]=1
 	        old_id = current_id
 	        m = test.loc[rows, 'similarity'].max()
-	        test.loc[rows, 'similarity'] = (test.loc[rows, 'similarity'] == m)
+	        test.loc[rows, 'arg_max'] = (test.loc[rows, 'similarity'] == m)
 	        rows = []
 	        rows.append(row)
 	    
-	    if row == test.shape[0]:
+	    if row == test.shape[0]-1:
 	        sample = np.random.randint(min(rows), max(rows)+1)
 	        baseline[sample]=1
 	        old_id = current_id
 	        m = test.loc[rows, 'similarity'].max()
-	        test.loc[rows, 'similarity'] = (test.loc[rows, 'similarity'] == m)
+	        test.loc[rows, 'arg_max'] = (test.loc[rows, 'similarity'] == m)
 	        rows = []
 	        rows.append(row)
 
 
 
 
-	test = test.reset_index(drop=True)
 	X_test = test[headers_to_scale].values
-	Y_test = test['similarity']
+	Y_test = test['arg_max']
 
 
 
@@ -151,9 +153,9 @@ def main(train_path, test_path):
 	# Les deux métriques du pdf
 
 
-	df_2 = data_frame_test.copy()
+	#df_2 = data_frame_test.copy()
 
-	old_id = df_2.loc[0, 'id']
+	old_id = test.loc[0, 'id']
 	rows = []
 	score_1 = 0
 	score_2 = 0
@@ -162,33 +164,38 @@ def main(train_path, test_path):
 	N = 0
 
 	for row in range(len(Y_predicted_test)):
-	    current_id = df_2.loc[row,'id']
-	    if Y_predicted_test[row] == 1:
-	        prediction = row
-	        N += 1
-	    if baseline[row] == 1:
-	        prediction_baseline = row
+	    current_id = test.loc[row,'id']
+
 	    if current_id == old_id:
-	        rows.append(row)
-	    else:
+	    	rows.append(row)
+	    	if Y_predicted_test[row] == 1:
+	    		prediction = row
+	    		N += 1
+	    	if baseline[row] == 1:
+	    		prediction_baseline = row
+	    else:        
+	        m = test.loc[rows, 'similarity'].max()    
+	        score_1 += m - test.loc[prediction, 'similarity']
+	        score_2 += m*test.loc[prediction, 'similarity']
+	        score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
+	        score_2_baseline += m*test.loc[prediction_baseline, 'similarity']       
+	        #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
 	        old_id = current_id
-	        m = df_2.loc[rows, 'similarity'].max()    
-	        score_1 += m - df_2.loc[prediction, 'similarity']
-	        score_2 += m*df_2.loc[prediction, 'similarity']
-	        score_1_baseline += m - df_2.loc[prediction_baseline, 'similarity']
-	        score_2_baseline += m*df_2.loc[prediction_baseline, 'similarity']        
 	        rows = []
 	        rows.append(row)
-	    if row == len(Y_predicted_test):
-	        old_id = current_id
-	        m = df_2.loc[rows, 'similarity'].max()    
-	        score_1 += m - df_2.loc[prediction, 'similarity']
-	        score_2 += m*df_2.loc[prediction, 'similarity']
-	        score_1_baseline += m - df_2.loc[prediction_baseline, 'similarity']
-	        score_2_baseline += m*df_2.loc[prediction_baseline, 'similarity']        
-	        rows = []
-	        rows.append(row)
-	        
+	        if Y_predicted_test[row] == 1:
+	        	prediction = row
+	        	N += 1
+	        if baseline[row] == 1:
+	        	prediction_baseline = row
+
+	    if row == len(Y_predicted_test)-1:        
+	        m = test.loc[rows, 'similarity'].max()    
+	        score_1 += m - test.loc[prediction, 'similarity']
+	        score_2 += m*test.loc[prediction, 'similarity']
+	        score_1_baseline += m - test.loc[prediction_baseline, 'similarity']
+	        score_2_baseline += m*test.loc[prediction_baseline, 'similarity']        
+	        #print(str(N)+' : commande '+str(old_id)+' nb_lignes = '+str(len(rows))+' ; sim_max = '+str(m)+' ; sim_predicted = '+str(test.loc[prediction, 'similarity'])+' ; sim_baseline = '+str(test.loc[prediction_baseline, 'similarity'])) 
 
 
 	score_1 /= N

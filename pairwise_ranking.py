@@ -3,7 +3,7 @@ import argparse
 from utils.kfolds import KFolds, read_csv
 from utils.pairwise_approach import RankSVM
 
-def main(path, delimiter, verbose):
+def main(path, delimiter, score, threshold, verbose):
     # loading the dataframe
     data_frame, all_headers = read_csv(path, delimiter, verbose)
     
@@ -49,10 +49,10 @@ def main(path, delimiter, verbose):
         
         # split the feature and the [rank, id]
         X_train = train[headers_to_scale].values
-        Y_train = train[['rank', 'id']]
+        Y_train = train[['rank', 'id']].values
         
         X_test = test[headers_to_scale].values
-        Y_test = test[['rank', 'id']]
+        Y_test = test[['rank', 'id']].values
         
         # Create our model
         rank_svm = RankSVM()
@@ -60,13 +60,33 @@ def main(path, delimiter, verbose):
         # Fit our model with the train set
         rank_svm = rank_svm.fit(X_train, Y_train)
         
-        # Compute the missranked score for the train set
-        missranked_score_train = 1 - rank_svm.scoreInversion(X_train, Y_train)
-        missranked_scores_train.append(missranked_score_train)
-        
-        # Compute the missranked score for the test set
-        missranked_score_test = 1 - rank_svm.scoreInversion(X_test, Y_test)
-        missranked_scores_test.append(missranked_score_test)
+        if score == 'inversion':
+            # Compute the missranked score for the train set
+            missranked_score_train = 1 - rank_svm.scoreInversion(X_train, Y_train)
+            missranked_scores_train.append(missranked_score_train)
+            
+            # Compute the missranked score for the test set
+            missranked_score_test = 1 - rank_svm.scoreInversion(X_test, Y_test)
+            missranked_scores_test.append(missranked_score_test)
+        elif score == 'thresholdId':
+            # Compute the missranked score for the train set
+            missranked_score_train = 1 - rank_svm.scoreThresholdId(X_train, Y_train, threshold)
+            missranked_scores_train.append(missranked_score_train)
+            
+            # Compute the missranked score for the test set
+            missranked_score_test = 1 - rank_svm.scoreThresholdId(X_test, Y_test, threshold)
+            missranked_scores_test.append(missranked_score_test)
+        elif score == 'id':
+            # Compute the missranked score for the train set
+            missranked_score_train = 1 - rank_svm.scoreId(X_train, Y_train)
+            missranked_scores_train.append(missranked_score_train)
+            
+            # Compute the missranked score for the test set
+            missranked_score_test = 1 - rank_svm.scoreId(X_test, Y_test)
+            missranked_scores_test.append(missranked_score_test)
+        else:
+            print('Not a valid score method')
+            return
         
         # printing intermediate results
         if verbose:
@@ -89,10 +109,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', help='path to the dataset', required=True)
     parser.add_argument('--delimiter', help='delimiter used in the dataset', required=True)
+    parser.add_argument('--score', help='choose the score used', type=str, default="inversion")
+    parser.add_argument('--threshold', help='the threshold used in the score by Id metric', type=float, default = 0.5)
     parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
 	
     # Recover the arguments
     opts = parser.parse_args()
 
     # Execute the main function
-    main(opts.dataset, opts.delimiter, opts.verbose)
+    main(opts.dataset, opts.delimiter, opts.score, opts.threshold, opts.verbose)
