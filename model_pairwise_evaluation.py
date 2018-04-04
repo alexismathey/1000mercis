@@ -116,6 +116,7 @@ def main(train_path, test_path):
 #     print('   missranked =', round(missranked_score_train, 3))
 #     print('   wellranked =', round(1 - missranked_score_train, 3))
 # =============================================================================
+    print('Training finished')
 
     # computing score on test set
     Y_predicted_test = rank_svm.predictId(X_test, Y_test)
