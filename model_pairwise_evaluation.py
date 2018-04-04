@@ -106,13 +106,16 @@ def main(train_path, test_path):
     rank_svm = RankSVM()
     rank_svm = rank_svm.fit(X_train, Y_train)
 
-    # computing score on train set
-    missranked_score_train = 1 - rank_svm.scoreId(X_train, Y_train)
-    
-    # printing intermediate results
-    print('train set:')
-    print('   missranked =', round(missranked_score_train, 3))
-    print('   wellranked =', round(1 - missranked_score_train, 3))
+# =============================================================================
+#     # The following part is commented in order to decrease the execution time
+#     # computing score on train set
+#     missranked_score_train = 1 - rank_svm.scoreId(X_train, Y_train)
+#     
+#     # printing intermediate results
+#     print('train set:')
+#     print('   missranked =', round(missranked_score_train, 3))
+#     print('   wellranked =', round(1 - missranked_score_train, 3))
+# =============================================================================
 
     # computing score on test set
     Y_predicted_test = rank_svm.predictId(X_test, Y_test)

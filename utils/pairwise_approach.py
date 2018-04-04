@@ -37,7 +37,7 @@ def transform_pairwise(X, Y):
     Z_new = []
     T_new = {}
     
-    current_id = -1
+    current_id = Y[0, 1]
     i = 0
     k = 0
     rank1 = []
@@ -106,6 +106,82 @@ def transform_pairwise(X, Y):
         T_new[current_id] = nConv
 
     return np.asarray(X_new), np.asarray(Y_new).ravel(), np.asarray(Z_new), T_new
+
+def transform_pairwise_test(X, Y):
+    """
+    Transforms data into pairs for testing with scoreId
+    Transforms a n-class ranking problem into a two-class classification
+    problem.
+    In this method, all pairs are chosen.
+    
+    Parameters
+    ----------
+    X : array, shape (n_samples, n_features)
+        The data
+    Y : array, shape (n_samples, 2)
+        Target labels. The second column represents the grouping of samples,
+        i.e., samples with different groups will not be considered.
+        
+    Returns
+    -------
+    X_trans : array, shape (k, n_features)
+        Data as pairs
+    Z_trans : array, shape (k, 3)
+        [sample1, sample2, current_id]
+    """
+
+    #Initiate the output
+    X_new = []
+    Z_new = []
+    
+    current_id = Y[0, 1]
+    i = 0
+    k = 0
+    listX = []
+    listId = []
+    
+    #For each sample, we check its id
+    while i < len(X):
+        # If its id is matching the id we are currently investigating, 
+        # we append the sample according to its rank and move to the next one
+        if Y[i,1] == current_id:
+            listX.append(copy.deepcopy(X[i]))
+            listId.append(copy.deepcopy(i))
+            
+            i += 1
+        # If the id doesn't match, then we finished all the samples with the
+        # current id, we append the differences (rank1 <-> rank2) in our
+        # output and we change the id
+        else:
+            for l in range(0, len(listId)):
+                for m in range(l + 1, len(listId)):
+                    X_new.append((-1)**k * (listX[m] - listX[l])/(listX[m] + listX[l] + 0.0001))
+                    
+                    if k % 2 == 0:
+                        Z_new.append([listId[m], listId[l], current_id])
+                    else:
+                        Z_new.append([listId[l], listId[m], current_id])
+                        
+                    k += 1
+            
+            listX = []
+            listId = []
+            current_id = Y[i,1]
+    
+    # If there is one id which is not in the output        
+    if len(listX) > 0 and len(listId) > 0:
+        for l in range(0, len(listId)):
+            for m in range(l + 1, len(listId)):
+                X_new.append((-1)**k * (listX[m] - listX[l])/(listX[m] + listX[l] + 0.0001))
+                
+                if k % 2 == 0:
+                    Z_new.append([listId[m], listId[l], current_id])
+                else:
+                    Z_new.append([listId[l], listId[m], current_id])
+                    
+                k += 1
+
+    return np.asarray(X_new), np.asarray(Z_new)
 
 class RankSVM(svm.LinearSVC):
     """
@@ -186,7 +262,7 @@ class RankSVM(svm.LinearSVC):
         """
         
         # Convert the dataset for the pairwise approach
-        X_trans, _, Z_trans, _ = transform_pairwise(X, Y)
+        X_trans, Z_trans = transform_pairwise_test(X, Y)
         
         # Store for each id the ids of each conversion and the number of pairs 
         # where this conversion won
