@@ -31,7 +31,7 @@ def main(path, delimiter, score, threshold, verbose):
     headers_to_scale.remove('rank')
     
     # K-Fold cross-validation
-    nb_folds = 10
+    nb_folds = 2
     fold = KFolds(data_frame, nb_folds)
     missranked_scores_train = []
     missranked_scores_test = []
@@ -103,6 +103,8 @@ def main(path, delimiter, score, threshold, verbose):
         print('\n******** MEAN over all folds ********')
         print('Train missranked = ', np.mean(missranked_scores_train))
         print(' Test missranked = ', np.mean(missranked_scores_test))
+        print('Train wellranked = ', 1 - np.mean(missranked_scores_train))
+        print(' Test wellranked = ', 1 - np.mean(missranked_scores_test))
             
 if __name__ == '__main__':
     # Parse the different arguments
@@ -112,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument('--score', help='choose the score used', type=str, default="inversion")
     parser.add_argument('--threshold', help='the threshold used in the score by Id metric', type=float, default = 0.5)
     parser.add_argument('--verbose', help='increase output verbosity', action='store_true', required=False)
-	
+    
     # Recover the arguments
     opts = parser.parse_args()
 
